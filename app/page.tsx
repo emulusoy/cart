@@ -1,62 +1,61 @@
 "use client";
+import './globals.css';
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import type { NextPage } from "next";
-import { useState, useEffect } from "react";
-
-type CartItem = {
+interface Product {
   id: number;
   name: string;
   price: number;
-};
+  image: string;
+  description: string;
+}
 
-const CartContent: React.FC = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const searchParams = useSearchParams();
+export default function CartPage() {
+  const [items, setItems] = useState<Product[]>([]);
 
   useEffect(() => {
-    const itemsParam = searchParams.get('items');
-    if (itemsParam) {
-      setCartItems(JSON.parse(decodeURIComponent(itemsParam)));
+    const params = new URLSearchParams(window.location.search);
+    const itemsData = params.get("items");
+    if (itemsData) {
+      setItems(JSON.parse(itemsData));
     }
-  }, [searchParams]);
+  }, []);
 
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const total = items.reduce((acc, item) => acc + item.price, 0);
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-4xl font-bold text-center mb-10 text-gray-800">
-        Sepetim
-      </h1>
-      {cartItems.length === 0 ? (
-        <p className="text-center text-lg text-gray-600">Sepetinizde ürün bulunmamaktadır.</p>
-      ) : (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <ul>
-            {cartItems.map((item, index) => (
-              <li key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                <span className="text-lg text-gray-700">{item.name}</span>
-                <span className="font-semibold text-gray-900">{item.price.toFixed(2)} TL</span>
-              </li>
+    <div className="bg-gray-950 min-h-screen pt-20">
+      <Navbar cartItemCount={items.length} onGoToCart={() => {}} />
+      <div className="container mx-auto px-6 py-10">
+        <h1 className="text-4xl font-bold text-white mb-8">Sepetiniz</h1>
+        {items.length === 0 ? (
+          <p className="text-gray-400">Sepetiniz boş</p>
+        ) : (
+          <div className="space-y-6">
+            {items.map((item) => (
+              <div key={item.id} className="flex gap-6 items-center bg-gray-800 p-4 rounded-lg shadow">
+                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded" />
+                <div className="flex-1">
+                  <h3 className="text-white text-lg font-bold">{item.name}</h3>
+                  <p className="text-gray-400 text-sm">{item.description}</p>
+                </div>
+                <div className="text-purple-400 text-xl font-bold">{item.price.toFixed(2)} TL</div>
+              </div>
             ))}
-          </ul>
-          <div className="mt-6 pt-4 border-t border-gray-300 flex justify-between items-center">
-            <span className="text-xl font-bold text-gray-800">Toplam:</span>
-            <span className="text-xl font-bold text-blue-600">{total.toFixed(2)} TL</span>
+
+            <div className="flex justify-between items-center mt-10 border-t border-gray-700 pt-6">
+              <span className="text-white text-xl">Toplam:</span>
+              <span className="text-green-400 text-2xl font-bold">{total.toFixed(2)} TL</span>
+            </div>
+            <div className="text-right">
+              <button className="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold">
+                Ödeme Yap
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
-};
-
-const Cart: NextPage = () => {
-  return (
-    <Suspense fallback={<div>Yükleniyor...</div>}>
-      <CartContent />
-    </Suspense>
-  );
-};
-
-export default Cart;
+}
